@@ -6,8 +6,8 @@ This is used to convert a variable into a buffer for writing to a file. The curr
 ## Current Types
 
 * Control Items
-    * Invalid DType = iota
-    * EOR           // End of recursion ( to signal the end of a repeating data structure ... used for maps)
+    * Invalid // The datatype wasn't found or an error occoured
+    * EOR     // End of recursion ( to signal the end of a repeating data structure ... used for maps)
 * Basic
     * Bool
     * String
