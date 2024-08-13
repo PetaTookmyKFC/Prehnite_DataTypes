@@ -5,6 +5,26 @@ This is used to convert a variable into a buffer for writing to a file. The curr
 
 ## Current Types
 
+* Control Items
+    * Invalid DType = iota
+    * EOR           // End of recursion ( to signal the end of a repeating data structure ... used for maps)
+* Basic
+    * Bool
+    * String
+* Number Types
+    * ConvInt //  ( converts to int64 )
+    * Int8
+    * Int16
+    * Int32
+    * Int64
+    * Float32
+    * Float64
+* Complex Types // ( This may require extra supervision )
+    * Array
+    * Map
+    * Struct
+
+
 > [!WARNing]
 > Structs are being supported... For encoding to binary the normal encoding will work, but for decoding a pointer must be passed meaning decodeStruct must be used. 
 
