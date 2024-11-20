@@ -5,16 +5,20 @@ import (
 	"encoding/binary"
 	"errors"
 	"reflect"
+
+	passwordhandlers "github.com/PetaTookmyKFC/Prehnite_DataTypes/PasswordHandlers"
 )
 
 type DType uint8
+
+// case a string to this to allow for generic function to handle it.
 
 const (
 	Invalid DType = iota
 	EOR           // End of recursion ( to signal the end of a repeating data structure ... used for maps)
 	Bool
 	ConvInt //  ( converts to int64 )
-	Int8
+	Int8    // char / byte
 	Int16
 	Int32
 	Int64
@@ -24,10 +28,12 @@ const (
 	Array
 	Map
 	Struct
+
+	Password
 )
 
 func (t DType) String() string {
-	s := []string{"Invalid", "End of Recursion", "Bool", "ConvInt", "int8", "int16", "Int32", "Int64", "Float32", "Float64", "String", "Array", "Map", "Struct"}
+	s := []string{"Invalid", "End of Recursion", "Bool", "ConvInt", "int8", "int16", "Int32", "Int64", "Float32", "Float64", "String", "Array", "Map", "Struct", "Password"}
 	return s[t]
 }
 func GetType(value any) DType {
@@ -57,6 +63,8 @@ func GetType(value any) DType {
 		return Float32
 	case string:
 		return String
+	case passwordhandlers.Password:
+		return Password
 	case []interface{}:
 		return Array
 	case map[string]interface{}:
@@ -166,6 +174,8 @@ func _Decode(buff *bytes.Buffer) (any, DType, error) {
 		res, err = nil, nil
 	case Struct:
 		err = errors.New("structs are not supported by this method. please use decodestruct")
+	case Password:
+		res, err = check_Password(buff)
 	default:
 		fallthrough
 	case Invalid:
@@ -212,6 +222,8 @@ func _Encode(data any, buff *bytes.Buffer) error {
 		err = enc_Map(value.(map[string]interface{}), buff)
 	case Struct:
 		err = enc_Struct(value, buff)
+	case Password:
+		err = enc_Password(value.(passwordhandlers.Password), buff)
 	default:
 		err = errors.New("unsupported type")
 		return err

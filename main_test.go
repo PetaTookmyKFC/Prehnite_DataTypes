@@ -1,8 +1,13 @@
 package datatypes
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"testing"
+
+	passwordhandlers "github.com/PetaTookmyKFC/Prehnite_DataTypes/PasswordHandlers"
 )
 
 type args struct {
@@ -13,6 +18,34 @@ type testStruct struct {
 	args     args
 	wantErr  bool
 	wantType DType
+}
+
+func Test_Password(t *testing.T) {
+
+	fmt.Println("testing Function!!!")
+
+	pass := passwordhandlers.Password(`SecretPassword`)
+
+	data, err := Encode(pass)
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.WriteFile("./TESTS/output.hex", data, 0600)
+
+	res, dtype, err := Decode(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("responce ", res)
+	fmt.Println("type: ", dtype)
+
+	f, err := res.(PassCompareFunc)(pass)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(f)
 }
 
 func Test_String(t *testing.T) {
