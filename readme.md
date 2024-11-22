@@ -98,3 +98,17 @@ This is a table showing how the variables are stored within the buffer. There ar
 | uint32|Version|This is used as a reference to the versions map, this is used to prevent items being loaded by older / newer version of the program to prevent coruption of data|
 | uint8| DType | This is a iota that is used to save the type of data that is stored within, in this case this is used to inform the decoder that a conversion to a passed pointer is required after the map is decoded. ( STRUCT )
 | []byte | VALUE | This is the buffer of the data type `Map` as structs can be saved as maps
+
+##### Password
+
+> [!WARN]
+> The default type is `fine` this is PLAIN TEXT! it is called fine because it is fine for development and you will get `fined` if you use it in production
+
+|Type|Section Name| Description |
+|-|-|-|
+| uint32|Version|This is used as a reference to the versions map, this is usedf to prevent items being loaded by older / newer version of the program to prevent coruption of data|
+| uint8| DType | This is a iota that is used to save the type of data that is stored within the field.|
+| uint8 | Handler | This is a iota that is used to save the method of handling the password, found in ( `PasswordHandlers/Structs.go` as type `Names` )
+| uint32 | Data Length | Because different handlers could be used, data length of hash may not be constant.
+| DATA | Value | The bytes of the enc password.
+

@@ -12,6 +12,7 @@ func Get_Fined() Handler {
 	return Handler{
 		Check_Password: func(password Password, buff []byte) (bool, error) {
 			fmt.Println("password: ", password)
+			fmt.Println(len(buff))
 			fmt.Println(buff)
 			return bytes.Equal([]byte(password), buff), nil
 		},

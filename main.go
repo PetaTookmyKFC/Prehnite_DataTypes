@@ -165,17 +165,20 @@ func _Decode(buff *bytes.Buffer) (any, DType, error) {
 		res, err = dec_Float32(buff)
 	case Float64:
 		res, err = dec_Float64(buff)
+
+	case Password:
+		res, err = check_Password(buff)
+
 	case Array:
 		res, err = dec_Array(buff)
-		// Unknown / unregistered
 	case Map:
 		res, err = dec_Map(buff)
 	case EOR:
 		res, err = nil, nil
 	case Struct:
 		err = errors.New("structs are not supported by this method. please use decodestruct")
-	case Password:
-		res, err = check_Password(buff)
+
+		// Unknown / unregistered
 	default:
 		fallthrough
 	case Invalid:

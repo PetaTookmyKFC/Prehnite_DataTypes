@@ -40,6 +40,8 @@ func Test_Password(t *testing.T) {
 	fmt.Println("responce ", res)
 	fmt.Println("type: ", dtype)
 
+	fmt.Println(len(pass))
+
 	f, err := res.(PassCompareFunc)(pass)
 	if err != nil {
 		log.Fatal(err)

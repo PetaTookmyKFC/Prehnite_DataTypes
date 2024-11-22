@@ -31,8 +31,8 @@ func enc_String(value string, buff *bytes.Buffer) error {
 }
 
 func dec_String(value *bytes.Buffer) (string, error) {
-
 	var NumberRead uint32
+	// Read the size of the buffer
 	err := binary.Read(value, binary.LittleEndian, &NumberRead)
 	if err != nil {
 		return "", err
@@ -41,7 +41,7 @@ func dec_String(value *bytes.Buffer) (string, error) {
 	if NumberRead <= 0 {
 		return "", errors.New("string doesn't have a set length")
 	}
-
+	// fmt.Printf("Testing String len : %d", NumberRead)
 	// result := make([]byte, NumberRead)
 	result := make([]byte, NumberRead)
 	err = binary.Read(value, binary.LittleEndian, &result)

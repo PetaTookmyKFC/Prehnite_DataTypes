@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 
 	passwordhandlers "github.com/PetaTookmyKFC/Prehnite_DataTypes/PasswordHandlers"
 )
@@ -30,6 +31,8 @@ func enc_Password(value passwordhandlers.Password, buff *bytes.Buffer) error {
 		return err
 	}
 
+	fmt.Printf("Encoded Data Length %v \n", len(data))
+
 	// write the length of the password
 	err = binary.Write(buff, binary.LittleEndian, uint32(len(data)))
 	if err != nil {
@@ -51,9 +54,17 @@ type PassCompareFunc func(password passwordhandlers.Password) (bool, error)
 // Returns the function to check if the password is correct
 // func check_Password(value *bytes.Buffer) (func(password string) (bool, error), error) {
 func check_Password(value *bytes.Buffer) (PassCompareFunc, error) {
-	var NumberRead uint32
+	// Get the password handler
+	var enc_Type uint8
+	err := binary.Read(value, binary.LittleEndian, &enc_Type)
+	if err != nil {
+		return nil, errors.New("cant read the password handler type")
+	}
+	fmt.Printf("ENC_TYPE == %d \n", enc_Type)
+
 	// Read the size of the password bytes
-	err := binary.Read(value, binary.LittleEndian, &NumberRead)
+	var NumberRead uint32
+	err = binary.Read(value, binary.LittleEndian, &NumberRead)
 	if err != nil {
 		// failed to read  password length
 		return nil, errors.New("Cant read passworld length!")
@@ -63,9 +74,13 @@ func check_Password(value *bytes.Buffer) (PassCompareFunc, error) {
 		return nil, errors.New("passsword doesn't have a set length")
 	}
 
+	fmt.Printf("Bufferlength == %d \n", NumberRead)
+	fmt.Printf("Your handler has an ID of %d \n", enc_Type)
+
 	buff := make([]byte, NumberRead)
 
-	_, err = value.Read(buff)
+	err = binary.Read(value, binary.LittleEndian, &buff)
+	// _, err = value.Read(buff)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +88,7 @@ func check_Password(value *bytes.Buffer) (PassCompareFunc, error) {
 	// return string(buff[0:]), nil
 
 	return (func(password passwordhandlers.Password) (bool, error) {
-		return passwordhandlers.HandlerList[passwordhandlers.Default].Check_Password(passwordhandlers.Password(password), buff)
+		return passwordhandlers.HandlerList[passwordhandlers.Names(enc_Type)].Check_Password(passwordhandlers.Password(password), buff)
 	}), nil
 
 }
