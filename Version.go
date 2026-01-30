@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-const current = uint32(1)
+const current = uint32(0)
 
 // This was originally used incase the encoding types where to change the data would be updated and recovered to the new format...
 // I know this is not used, don't really know what it was made for, but it's here now and here it will stay, including `SizeofUint` and the versions map
