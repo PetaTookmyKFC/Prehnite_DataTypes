@@ -17,6 +17,10 @@ This is used to convert a variable into a buffer for writing to a file. The curr
     * Int16
     * Int32
     * Int64
+    * Uint8
+    * Uint16
+    * Uint32
+    * Uint64
     * Float32
     * Float64
 * Complex Types // ( This may require extra supervision )
@@ -30,9 +34,13 @@ This is used to convert a variable into a buffer for writing to a file. The curr
 
 ## Buffer table
 
+> [!NOTE]
+> The version table isn't implemented, and probably won't be, it's just there now, just in case.
+> The system doesn't check if the version is backwards compatible as there is no other version... it's just there.
+
 This is a table showing how the variables are stored within the buffer. There are slightly different layouts depending on the required data to be saved. Also in golang the `int` type is saved as a `int64` to ensure no data is lost.
 
-##### Bool, int8, int16, int32, int64, float32, float64
+##### Bool, int8, int16, int32, int64, float32, float64, uint8, uint16, uint32, uint64
 > [!NOTE]
 > The golang type `int` is automaticly converted into a `int64` just to ensure it will fit. 
 
@@ -40,7 +48,7 @@ This is a table showing how the variables are stored within the buffer. There ar
 |-|-|-|
 | uint32|Version|This is used as a reference to the versions map, this is usedf to prevent items being loaded by older / newer version of the program to prevent coruption of data|
 | uint8| DType | This is a iota that is used to save the type of data that is stored within the field.|
-| ? ? ? | Value | This is what the `binary.Write` saves the data as. All records are written with the formatting of `binary.LittleEndian`
+| ? ? ? | Value | This is what the `binary.Write` saves the data as. All records are written with the formatting of `binary.LittleEndian`|
 
 ##### String
 
@@ -48,8 +56,8 @@ This is a table showing how the variables are stored within the buffer. There ar
 |-|-|-|
 | uint32|Version|This is used as a reference to the versions map, this is usedf to prevent items being loaded by older / newer version of the program to prevent coruption of data|
 | uint8| DType | This is a iota that is used to save the type of data that is stored within the field.|
-| uint32 | Length | This is how long the string is in bytes, this is <b>NOT</b> the number of characters in the string as unicode characters result in more than one byte.
-| TEXT | Value | This is the string that has been written, it can include unicode characters.
+| uint32 | Length | This is how long the string is in bytes, this is <b>NOT</b> the number of characters in the string as unicode characters result in more than one byte.|
+| TEXT | Value | This is the string that has been written, it can include unicode characters.|
 
 
 ##### Array 
@@ -61,13 +69,13 @@ This is a table showing how the variables are stored within the buffer. There ar
 > Numbers need to be passed with a declaired size in order to pass the array test.
 
 
- Type | Section Name | Description |
-|-|-|-|
-| uint32|Version|This is used as a reference to the versions map, this is used to prevent items being loaded by older / newer version of the program to prevent coruption of data|
-| uint8| DType | This is a iota that is used to save the type of data that is stored within the field.|
-|uint32| Length| This is now many items are in the array.
-| uint8| Dtype | This is a iota that is used to save the type of data stored in the array.|
-|[]byte|Value|This is the value that is filled with other Datatypes, except they dont include `Version`. 
+|  Type  | Section Name | Description |
+|--------|-|-|
+| uint32 |Version|This is used as a reference to the versions map, this is used to prevent items being loaded by older / newer version of the program to prevent coruption of data|
+| uint8  | DType | This is a iota that is used to save the type of data that is stored within the field.|
+| uint32 | Length| This is now many items are in the array.|
+| uint8  | Dtype | This is a iota that is used to save the type of data stored in the array.|
+| []byte |Value|This is the value that is filled with other Datatypes, except they dont include `Version`. |
 
 
 ##### Map 
@@ -79,7 +87,7 @@ This is a table showing how the variables are stored within the buffer. There ar
 | uint32|Version|This is used as a reference to the versions map, this is used to prevent items being loaded by older / newer version of the program to prevent coruption of data|
 | uint8| DType | This is a iota that is used to save the type of data that is stored within the field. ( MAP ) |
 | START-REPEATING | This is repeating complex| This is here to represent a repeating structure. This is repeated for each item being saved. |
-| uint32 | Length | How long the name of the key is. ( This a type of string ) 
+| uint32 | Length | How long the name of the key is. ( This a type of string ) |
 | TEXT | Value | The text value for the key|
 | []byte | Value | This is the value stored by the map, this contains the binary compiled datatype |
 | uint8| DType | This is the iota that is used to inform the data of a end of recusion, this is used to inform the map that the next entries are not contained within itself, this is for maps within maps |
@@ -90,11 +98,11 @@ This is a table showing how the variables are stored within the buffer. There ar
 
 
 > [!NOTE]
-> I dont know how to make tests to automagically create and test the struct decoding. ( without manually creating the pointer manually. Should probably just use map
+> I don't know how to make tests to automagically create and test the struct decoding. ( without manually creating the pointer manually. Should probably just use map
 
 
 |Type|Section Name |Description|
 |-|-|-|
 | uint32|Version|This is used as a reference to the versions map, this is used to prevent items being loaded by older / newer version of the program to prevent coruption of data|
-| uint8| DType | This is a iota that is used to save the type of data that is stored within, in this case this is used to inform the decoder that a conversion to a passed pointer is required after the map is decoded. ( STRUCT )
-| []byte | VALUE | This is the buffer of the data type `Map` as structs can be saved as maps
+| uint8| DType | This is a iota that is used to save the type of data that is stored within, in this case this is used to inform the decoder that a conversion to a passed pointer is required after the map is decoded. ( STRUCT )|
+| []byte | VALUE | This is the buffer of the data type `Map` as structs can be saved as maps|

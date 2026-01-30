@@ -134,6 +134,38 @@ func Test_Number(t *testing.T) {
 			wantType: Float64,
 			wantErr:  false,
 		},
+		{
+			name: "Testing uint 8",
+			args: args{
+				value: uint8(255),
+			},
+			wantType: Uint8,
+			wantErr:  false,
+		},
+		{
+			name: "Testing uint 16",
+			args: args{
+				value: uint16(65535),
+			},
+			wantType: Uint16,
+			wantErr:  false,
+		},
+		{
+			name: "Testing uint 32",
+			args: args{
+				value: uint32(4294967295),
+			},
+			wantType: Uint32,
+			wantErr:  false,
+		},
+		{
+			name: "Testing uint 64",
+			args: args{
+				value: uint64(18446744073709551615),
+			},
+			wantType: Uint64,
+			wantErr:  false,
+		},
 	}
 
 	_TestNumber(tests, t)
@@ -502,14 +534,66 @@ func CheckMapsEqual(a, b map[string]interface{}, t *testing.T) bool {
 	return true
 }
 
-// func makeEmptyStruct(src interface{}) interface{} {
+func TestAreEqual_Uint(t *testing.T) {
+	tests := []struct {
+		name string
+		a    any
+		b    any
+		want bool
+	}{
+		{"Uint8 equal", uint8(10), uint8(10), true},
+		{"Uint16 equal", uint16(1000), uint16(1000), true},
+		{"Uint32 equal", uint32(100000), uint32(100000), true},
+		{"Uint64 equal", uint64(1000000000), uint64(1000000000), true},
+		{"Uint8 vs Uint16 (different types, same value)", uint8(10), uint16(10), false}, // AreEqual checks GetType(a) != GetType(b) first
+		{"Uint8 unequal", uint8(10), uint8(11), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AreEqual(tt.a, tt.b); got != tt.want {
+				t.Errorf("AreEqual() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-// 	s := reflect.ValueOf(src).Elem()
-// 	res := reflect.New(reflect.TypeOf(struct{}{}))
-
-// 	for i := 0; i < s.NumField(); i++ {
-// 		res.
-// 	}
-
-// 	return nil
-// }
+func TestCompareMaps_Uint(t *testing.T) {
+	tests := []struct {
+		name string
+		a    map[string]any
+		b    map[string]any
+		want bool
+	}{
+		{
+			name: "Simple map with Uint8",
+			a:    map[string]any{"key": uint8(10)},
+			b:    map[string]any{"key": uint8(10)},
+			want: true,
+		},
+		{
+			name: "Nested map with Uint32",
+			a:    map[string]any{"nest": map[string]any{"val": uint32(500)}},
+			b:    map[string]any{"nest": map[string]any{"val": uint32(500)}},
+			want: true,
+		},
+		{
+			name: "Map with multiple Uint types",
+			a:    map[string]any{"u8": uint8(1), "u16": uint16(2), "u32": uint32(3), "u64": uint64(4)},
+			b:    map[string]any{"u8": uint8(1), "u16": uint16(2), "u32": uint32(3), "u64": uint64(4)},
+			want: true,
+		},
+		{
+			name: "Map unequal Uint64",
+			a:    map[string]any{"val": uint64(100)},
+			b:    map[string]any{"val": uint64(101)},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := _compareMaps(tt.a, tt.b); got != tt.want {
+				t.Errorf("_compareMaps() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

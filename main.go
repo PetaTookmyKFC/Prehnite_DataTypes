@@ -24,10 +24,15 @@ const (
 	Array
 	Map
 	Struct
+
+	Uint8
+	Uint16
+	Uint32
+	Uint64
 )
 
 func (t DType) String() string {
-	s := []string{"Invalid", "End of Recursion", "Bool", "ConvInt", "int8", "int16", "Int32", "Int64", "Float32", "Float64", "String", "Array", "Map", "Struct"}
+	s := []string{"Invalid", "End of Recursion", "Bool", "ConvInt", "int8", "int16", "Int32", "Int64", "Float32", "Float64", "String", "Array", "Map", "Struct", "Uint8", "Uint16", "Uint32", "Uint64"}
 	return s[t]
 }
 func GetType(value any) DType {
@@ -57,6 +62,16 @@ func GetType(value any) DType {
 		return Float32
 	case string:
 		return String
+
+	case uint8:
+		return Uint8
+	case uint16:
+		return Uint16
+	case uint32:
+		return Uint32
+	case uint64:
+		return Uint64
+
 	case []interface{}:
 		return Array
 	case map[string]interface{}:
@@ -159,9 +174,18 @@ func _Decode(buff *bytes.Buffer) (any, DType, error) {
 		res, err = dec_Float64(buff)
 	case Array:
 		res, err = dec_Array(buff)
-		// Unknown / unregistered
+	case Uint8:
+		res, err = dec_Uint8(buff)
+	case Uint16:
+		res, err = dec_Uint16(buff)
+	case Uint32:
+		res, err = dec_Uint32(buff)
+	case Uint64:
+		res, err = dec_Uint64(buff)
+
 	case Map:
 		res, err = dec_Map(buff)
+		// Unknown / unregistered
 	case EOR:
 		res, err = nil, nil
 	case Struct:
@@ -206,6 +230,16 @@ func _Encode(data any, buff *bytes.Buffer) error {
 		err = enc_Float64(value.(float64), buff)
 	case String:
 		err = enc_String(value.(string), buff)
+
+	case Uint8:
+		err = enc_Uint8(value.(uint8), buff)
+	case Uint16:
+		err = enc_Uint16(value.(uint16), buff)
+	case Uint32:
+		err = enc_Uint32(value.(uint32), buff)
+	case Uint64:
+		err = enc_Uint64(value.(uint64), buff)
+
 	case Array:
 		err = enc_Array(value.([]interface{}), buff)
 	case Map:
@@ -220,6 +254,7 @@ func _Encode(data any, buff *bytes.Buffer) error {
 	return err
 }
 
+// AreEqual - Compares two values to see if they are equal, unknown / Invalid types return false /
 func AreEqual(a, b any) bool {
 
 	// Check if the types are the same
@@ -235,7 +270,39 @@ func AreEqual(a, b any) bool {
 		{
 			return reflect.DeepEqual(a, b)
 		}
+	case Uint8, Uint16, Uint32, Uint64:
+		{
+			if reflect.DeepEqual(a, b) {
+				return true
+			}
 
+			var a1 uint64
+			var b1 uint64
+			// For Some Reason needs to switch on type instead of just casting
+			switch v := a.(type) {
+			case uint8:
+				a1 = uint64(v)
+			case uint16:
+				a1 = uint64(v)
+			case uint32:
+				a1 = uint64(v)
+			case uint64:
+				a1 = v
+			}
+
+			switch v := b.(type) {
+			case uint8:
+				b1 = uint64(v)
+			case uint16:
+				b1 = uint64(v)
+			case uint32:
+				b1 = uint64(v)
+			case uint64:
+				b1 = v
+			}
+
+			return a1 == b1
+		}
 	case Int8, Int16, Int32, Int64, Float32, Float64, ConvInt:
 		{
 			// Try deep equal
@@ -262,7 +329,7 @@ func AreEqual(a, b any) bool {
 		}
 	case Map:
 		{
-			return _comapreMaps(a.(map[string]any), b.(map[string]any))
+			return _compareMaps(a.(map[string]any), b.(map[string]any))
 		}
 	case Struct:
 		{
@@ -274,11 +341,17 @@ func AreEqual(a, b any) bool {
 			}
 			return true
 		}
+	// Should Never get here
+	default:
+		fallthrough
+	case Invalid:
+		{
+			return false
+		}
 	}
-	return false // Should Never get here
 }
 
-func _comapreMaps(a, b map[string]any) bool {
+func _compareMaps(a, b map[string]any) bool {
 	// Check if the maps are the same length
 	if len(a) != len(b) {
 		return false
@@ -293,21 +366,23 @@ func _comapreMaps(a, b map[string]any) bool {
 			}
 			if !reflect.DeepEqual(value, val) {
 				if GetType(val) == Map {
-					if !_comapreMaps(value.(map[string]any), val.(map[string]any)) {
+					if !_compareMaps(value.(map[string]any), val.(map[string]any)) {
 						return false
 					}
 				} else {
-
-					if GetType(val) == ConvInt {
-						val = int64(val.(int))
-					}
-					if GetType(value) == ConvInt {
-						value = int64(value.(int))
-					}
-
-					if !reflect.DeepEqual(value, val) {
+					if !AreEqual(val, value) {
 						return false
 					}
+					//if GetType(val) == ConvInt {
+					//	val = int64(val.(int))
+					//}
+					//if GetType(value) == ConvInt {
+					//	value = int64(value.(int))
+					//}
+					//
+					//if !reflect.DeepEqual(value, val) {
+					//	return false
+					//}
 				}
 			}
 		}
